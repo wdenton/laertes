@@ -48,7 +48,7 @@ end
 
 # URL being called looks like this:
 #
-# http://www.miskatonic.org/ar/york.php?
+# /?
 # lang=en
 # & countryCode=CA
 # & userId=6f85012345
@@ -74,7 +74,7 @@ end
 
 get "/" do
   layer = settings.config.find {|l| l["layer"] == params[:layerName] }
-  # TODO Handle case of no layer
+  # TODO Handle case of no layer, catch Exceptions
   # TODO Fail with an error if no lat and lon are given
 
   # Error handling.
@@ -203,7 +203,7 @@ get "/" do
   end
 
   #
-  # Add more sources here.
+  # Add more sources here!
   #
 
   #
@@ -250,29 +250,30 @@ get "/" do
 
 end
 
+#
+# Helper methods
+#
+
 def distance_between(latitude1, longitude1, latitude2, longitude2)
-
-  latitude1 = latitude1.to_f
-  longitude1 = longitude1.to_f
-  latitude2 = latitude2.to_f
-  longitude2 = longitude2.to_f
-
   # Calculate the distance between two points on Earth using the
   # Haversine formula, as taken from https://github.com/almartin/Ruby-Haversine
-  earthRadius = 6371 # In km
 
-  # convert degrees to radians
-  def convDegRad(value)
+  latitude1 = latitude1.to_f; longitude1 = longitude1.to_f
+  latitude2 = latitude2.to_f; longitude2 = longitude2.to_f
+
+  earthRadius = 6371 # km
+
+  def degrees2radians(value)
     unless value.nil? or value == 0
       value = (value/180) * Math::PI
     end
     return value
   end
 
-  deltaLat = (latitude1 - latitude2)
-  deltaLon = (longitude1 - longitude2)
-  deltaLat = convDegRad(deltaLat)
-  deltaLon = convDegRad(deltaLon)
+  deltaLat = degrees2radians(latitude1  - latitude2)
+  deltaLon = degrees2radians(longitude1 - longitude2)
+  # deltaLat = degrees2radians(deltaLat)
+  # deltaLon = degrees2radians(deltaLon)
 
   # Calculate square of half the chord length between latitude and longitude
   a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +

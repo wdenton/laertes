@@ -1,18 +1,18 @@
 [
-    {
-	"layer": "code4lib2013",
-	"showMessage": "Use the #c4l13 hashtag and turn on geolocating for your tweets to show here.",
-	"search": "#code4lib OR #c4l13",
-	"google_maps": [
-	    "https://maps.google.com/maps/ms?msid=213549257652679418473.0004ce6c25e6cdeb0319d&msa=0",
-	    "https://maps.google.com/maps/ms?msid=208580427660303662074.0004d00a3e083f4d160a4&msa=0"
-	]
-    },
-    {
-	"layer": "yorkutweets_dev",
-	"showMessage": "Testing #yorku and #yorkuproblems tweets",
-	"search": "#yorku OR #yorkuproblems",
-	"google_maps": [
-	]
-    }
+  {
+    "layer": "code4lib2013",
+    "showMessage": "Use the #c4l13 hashtag and turn on geolocating for your tweets to show here.",
+    "search": "#code4lib OR #c4l13",
+    "google_maps": [
+      "https://maps.google.com/maps/ms?msid=213549257652679418473.0004ce6c25e6cdeb0319d&msa=0",
+      "https://maps.google.com/maps/ms?msid=208580427660303662074.0004d00a3e083f4d160a4&msa=0"
+    ]
+  },
+  {
+    "layer": "yorkutweets_dev",
+    "showMessage": "Testing #yorku and #yorkuproblems tweets",
+    "search": "#yorku OR #yorkuproblems",
+    "google_maps": [
+    ]
+  }
 ]
