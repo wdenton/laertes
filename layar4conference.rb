@@ -73,7 +73,7 @@ end
 # radius
 
 get "/" do
-  layer = settings.config.find {|l| l["layer"] == params[:layer] }
+  layer = settings.config.find {|l| l["layer"] == params[:layerName] }
   # TODO Handle case of no layer
   # TODO Fail with an error if no lat and lon are given
 
