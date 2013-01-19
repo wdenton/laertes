@@ -114,8 +114,8 @@ get "/" do
             },
             "anchor" => {
               "geolocation" => {
-                "lat" => latitude,
-                "lon" => longitude
+                "lat" => latitude.to_f,
+                "lon" => longitude.to_f
               }
             },
             # "imageURL" => nil,
