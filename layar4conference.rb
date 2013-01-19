@@ -40,7 +40,7 @@ configure do
     set(:config) { JSON.parse(File.read("config.json")) }
   rescue Exception => e
     puts e
-    exit 1
+    exit
   end
 end
 
@@ -73,22 +73,41 @@ end
 # radius
 
 get "/" do
-  layer = settings.config.find {|l| l["layer"] == params[:layerName] }
-  # TODO Handle case of no layer, catch Exceptions
-  # TODO Fail with an error if no lat and lon are given
 
-  # Error handling.
   # Status 0 indicates success. Change to number in range 20-29 if there's a problem.
   errorcode = 0
   errorstring = "ok"
 
+  begin
+    layer = settings.config.find {|l| l["layer"] == params[:layerName] }
+  rescue Exception => error
+    errorcode = 22
+    errorstring = "No such layer (#{params[:layerName]}) exists"
+    response = {
+      "layer"           => params[:layarName],
+      "refreshDistance" => 300,
+      "refreshInterval" => 100,
+      "hotspots"        => [],
+      "errorCode"       => errorcode,
+      "errorString"     => errorstring,
+    }
+    STDERR.puts "#{errorstring} (#{error})"
+    response.to_json
+    exit
+  end
+
+  # TODO Fail with an error if no lat and lon are given
+
   radius = params[:radius].to_f || 1500 # Default to 1500m radius if none provided
   hotspots = []
+
+  icon_url = layer["icon_url"] || "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png"
 
   #
   # First source: grab points of interest from Google Maps.
   #
 
+  counter = 1;
   layer["google_maps"].each do |map_url|
     begin
       kml = Nokogiri::XML(open(map_url + "&output=kml"))
@@ -104,7 +123,7 @@ get "/" do
 
           # But if it's within range, build the hotspot information for Layar
           hotspot = {
-            "id" => p.css("coordinates").text, # Could keep a counter but this is good enough
+            "id" => counter, # Could keep a counter but this is good enough
             "text" => {
               "title" => p.css("name").text,
               "description" => Nokogiri::HTML(p.css("description").text).css("div").text,
@@ -118,13 +137,14 @@ get "/" do
                 "lon" => longitude.to_f
               }
             },
-            # "imageURL" => nil,
-            # "icon" => {
-            #  "url" => "", # Add a default icon to see when scanning around?  Any way to grab a picture?
-            #  "type" =>  0
-            #},
+            "imageURL" => icon_url,
+            "icon" => {
+              "url" => icon_url,
+              "type" =>  0
+            },
           }
           hotspots << hotspot
+          counter += 1
         end
       end
     rescue Exception => error
