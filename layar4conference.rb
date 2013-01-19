@@ -118,7 +118,7 @@ get "/" do
                 "lon" => longitude
               }
             },
-            "imageURL" => ""
+            # "imageURL" => nil,
             # "icon" => {
             #  "url" => "", # Add a default icon to see when scanning around?  Any way to grab a picture?
             #  "type" =>  0
