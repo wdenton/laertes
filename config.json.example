@@ -7,9 +7,9 @@
 	 "https://maps.google.com/maps/ms?msid=208580427660303662074.0004d00a3e083f4d160a4&msa=0"
      ]
     ],
-    ["layer": "example",
-     "showMessage": "Example",
-     "search": "#conference2100",
+    ["layer": "this_has_to_match_the_name_at_layar",
+     "showMessage": "This will be shown when the layer is first opened",
+     "search": "#somehashtag",
      "google_maps": [
      ]
     ]

@@ -15,5 +15,6 @@
     "search": "#yorku OR #yorkuproblems",
     "google_maps": [
     ]
+    "icon_url": "http://code4lib.org/files/logo.png" 
   }
 ]
