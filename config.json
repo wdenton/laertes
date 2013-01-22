@@ -14,7 +14,7 @@
     "showMessage": "Testing #yorku and #yorkuproblems tweets",
     "search": "#yorku OR #yorkuproblems",
     "google_maps": [
-    ]
-    "icon_url": "http://code4lib.org/files/logo.png" 
+    ],
+    "icon_url": "http://code4lib.org/files/logo.png"
   }
 ]
