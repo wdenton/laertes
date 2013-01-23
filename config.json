@@ -10,11 +10,20 @@
     "icon_url": "http://code4lib.org/files/logo.png" 
   },
   {
-    "layer": "yorkutweets_dev",
-    "showMessage": "Testing #yorku and #yorkuproblems tweets",
+    "layer": "laertesdev",
+    "showMessage": "Test Laertes with #yorku and #yorkuproblems tweets",
     "search": "#yorku OR #yorkuproblems",
     "google_maps": [
+      "https://maps.google.com/maps/ms?msid=202260848628777232836.0004d3d6b479a352821b4&msa=0"
     ],
     "icon_url": "http://code4lib.org/files/logo.png"
-  }
+  },
+  {
+    "layer": "hastac2013",
+    "showMessage": "Use the #hastac2013 hashtag and turn on geolocatin for your tweets to show here.",
+    "search": "#hastac OR #hastac2013",
+    "google_maps": [
+      "https://maps.google.com/maps/ms?msid=202260848628777232836.0004d3d6b479a352821b4&msa=0"
+    ],
+  },
 ]
