@@ -105,10 +105,24 @@ Heroku will tell you it's set up the service for you at `some-outlandish-hostnam
 
 ## Setting up a layer in Layar
 
-The last step is to set up a layer at [Layar](http://www.layar.com/).  Set up an account if you don't have one.
+The last step is to set up a layer at [Layar](http://www.layar.com/).  Set up an account if you don't have one.  Then go to My Layers and look for the "create a new layer" option.  You will need to configure some options:
 
-* TBD
-* one
+* Layer name: this will need to match an entry in your `config.json` file.
+* Title: Human-readable title.
+* Short description: A short paragraph about what this is.  You can edit it later.
+* API endpoint URL: `http://some-outlandish-hostname-2112.herokuapp.com/` or whatever your Heroku URL is, or wherever it is you're hosting Laertes.
+* Layer type: Set it to "3D and 2D objects in 3D space"
+
+That will create a layer.  There are many more options you can configure, but you don't need to bother with them now.
+
+Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Vision mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
+
+
+
+
+
+
+* 
 * two
 * three
 
