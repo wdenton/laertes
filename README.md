@@ -42,7 +42,7 @@ Good! This means that the web service is running on your machine on port 9292.  
 
     $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
 
-It will respond with JSON output as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/).
+It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.  If you edited the config file, it might be a problem there. 
 
 ## Configuration
 
@@ -76,6 +76,29 @@ This is an array of objects.  Each object has these elements:
 * `google_maps` (optional): URLs of Google Maps listings points of interest. If there's more than one, separate with a comma.
 * `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps
 
+## Deploying in production
+
+Laertes uses [Rack](http://rack.github.com/), so you can deploy it with [Phusion Passenger](https://www.phusionpassenger.com/).
+
+Another option is to use the hosted service [Heroku](http://www.heroku.com/).  Follow the instructions there about signing up and installing the toolkit and logging in on your system, and then do this:
+
+    $ # [edit config.json in your favourite editor]
+    $ git add config.json
+	$ git commit -m "Customized config file"
+	$ heroku create
+	$ git push heroku master
+
+Heroku will tell you it's set up the service for you at `some-outlandish-hostname-2112.herokuapp.com` or something like that.  Now you can query it just like you queried your local instance before (change the hostname as necessary):
+
+    $ curl "http://some-outlandish-hostname-2112.herokuapp.com/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
+
 ## Setting up a layer in Layar
+
+The last step is to set up a layer at [Layar](http://www.layar.com/).  Set up an account if you don't have one.
+
+* TBD
+* one
+* two
+* three
 
 
