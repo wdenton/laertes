@@ -81,13 +81,11 @@ This is an array of objects.  Each object has these elements:
 * `showMessage` (optional): text message that shows when the user launches the layer.
 * `search` (required): the Twitter search used to find relevant tweets
 * `google_maps` (optional): URLs of Google Maps listings points of interest. If there's more than one, separate with a comma.
-* `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps.  You can define a full URL or a local one.  To use a local one, put it in the `public/icons/` directory.  It must be 110x110 pixels.  See [Look and Feel Tab Explanation](http://www.layar.com/documentation/browser/publishing-site/look-and-feel-tab-explanation/) for more.
+* `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps.  To one in this source tree, put it in the `public/icons/` directory and then give its full URL.  It must be 110x110 pixels.  See [Look and Feel Tab Explanation](http://www.layar.com/documentation/browser/publishing-site/look-and-feel-tab-explanation/) for more.
 
 If you ever edit the config file, it's a good idea to use `jsonlint` to make sure it's valid:
 
     $ jsonlint config.json
-
-
 
 ## Deploying in production
 
