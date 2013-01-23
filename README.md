@@ -17,10 +17,17 @@ For the Ruby XML parser `nokogiri` to run [there are further requirments](http:/
 
 If you run a different system, check Nokogiri's instructions.
 
-You will also need [Git](http://git-scm.com/) to get this source code, if you don't have [curl](http://curl.haxx.se/) then you should also install it.  It's very usful.  Again, these commands are meant for Debian/Ubuntu, so you'll have to adapt them to your system if you run something different.
+You will also need [Git](http://git-scm.com/) to get this source code.
 
     $ sudo apt-get install git
+
+While I'm at it, let me recommend two other useful tools: [curl](http://curl.haxx.se/) and [jsonlint](https://github.com/zaach/jsonlint).
+
+These commands are meant for Debian/Ubuntu, so you'll have to adapt them to your system if you run something different:
+
     $ sudo apt-get install curl
+    $ sudo apt-get install npm
+	$ npm install jsonlint -g
 
 ## Installation
 
@@ -42,7 +49,7 @@ Good! This means that the web service is running on your machine on port 9292.  
 
     $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
 
-It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.  If you edited the config file, it might be a problem there. 
+It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.  
 
 ## Configuration
 
@@ -74,7 +81,13 @@ This is an array of objects.  Each object has these elements:
 * `showMessage` (optional): text message that shows when the user launches the layer.
 * `search` (required): the Twitter search used to find relevant tweets
 * `google_maps` (optional): URLs of Google Maps listings points of interest. If there's more than one, separate with a comma.
-* `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps
+* `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps.  You can define a full URL or a local one.  To use a local one, put it in the `public/icons/` directory.  It must be 110x110 pixels.  See [Look and Feel Tab Explanation](http://www.layar.com/documentation/browser/publishing-site/look-and-feel-tab-explanation/) for more.
+
+If you ever edit the config file, it's a good idea to use `jsonlint` to make sure it's valid:
+
+    $ jsonlint config.json
+
+
 
 ## Deploying in production
 

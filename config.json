@@ -11,12 +11,12 @@
   },
   {
     "layer": "laertesdev",
-    "showMessage": "Test Laertes with #yorku and #yorkuproblems tweets",
-    "search": "#yorku OR #yorkuproblems",
+    "showMessage": "Test Laertes with #yorku and #yorkuproblems or #toronto tweets",
+    "search": "#yorku OR #yorkuproblems or #toronto",
     "google_maps": [
       "https://maps.google.com/maps/ms?msid=202260848628777232836.0004d3d6b479a352821b4&msa=0"
     ],
-    "icon_url": "http://code4lib.org/files/logo.png"
+    "icon_url": "/icons/red-square.png"
   },
   {
     "layer": "hastac2013",
