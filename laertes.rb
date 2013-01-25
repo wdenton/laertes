@@ -170,10 +170,11 @@ get "/" do
 
   radius_km = radius / 1000 # Twitter wants the radius in km
 
-  # twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search]) + "&rpp=100"
-  # twitter_search_url = "https://search.twitter.com/search.json?geocode=43.6,-79.4,5km&rpp=100"
-  # twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
-  twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+  # Test search: geolocated only (grabs a lot of results, good for making sure things work)
+  # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+
+  # The real search: hashtag plus geolocated
+  twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
   STDERR.puts "Getting #{twitter_search_url}"
 
   open(twitter_search_url) do |f|
