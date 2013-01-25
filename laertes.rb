@@ -202,7 +202,7 @@ get "/" do
               "lon" => longitude
             }
           },
-          "imageURL" => r["profile_image_url"],
+          "imageURL" => r["profile_image_url"].gsub("normal", "bigger"), # https://dev.twitter.com/docs/user-profile-images-and-banners
           "icon" => {
             "url" => r["profile_image_url"],
             "type" =>  0
