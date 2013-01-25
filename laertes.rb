@@ -81,195 +81,199 @@ get "/" do
   errorcode = 0
   errorstring = "ok"
 
-  begin
-    layer = settings.config.find {|l| l["layer"] == params[:layerName] }
-  rescue Exception => error
+  layer = settings.config.find {|l| l["layer"] == params[:layerName] }
+
+  if layer
+
+    radius = params[:radius].to_f || 1500 # Default to 1500m radius if none provided
+    hotspots = []
+
+    icon_url = layer["icon_url"] || "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png"
+
+    #
+    # First source: grab points of interest from Google Maps.
+    #
+
+    counter = 1;
+    layer["google_maps"].each do |map_url|
+      begin
+        kml = Nokogiri::XML(open(map_url + "&output=kml"))
+        kml.xpath("//xmlns:Placemark").each do |p|
+          if p.css("Point").size > 0 # Nicer way to ignore everything that doesn't have a Point element?
+
+            # Some of the points will be out of range, but lets assume there won't be too many,
+            # and we'll deal with it below
+
+            # Ignore all points that are too far away
+            longitude, latitude, altitude = p.css("coordinates").text.split(",")
+            next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
+
+            # But if it's within range, build the hotspot information for Layar
+            hotspot = {
+              "id" => counter, # Could keep a counter but this is good enough
+              "text" => {
+                "title" => p.css("name").text,
+                "description" => Nokogiri::HTML(p.css("description").text).css("div").text,
+                # For the description, which is in HTML, we need to pick out the text of the
+                # element from the XML and then parse it as HTML.  I think.  Seems kooky.
+                "footnote" => ""
+              },
+              "anchor" => {
+                "geolocation" => {
+                  "lat" => latitude.to_f,
+                  "lon" => longitude.to_f
+                }
+              },
+              "imageURL" => icon_url,
+              "icon" => {
+                "url" => icon_url,
+                "type" =>  0
+              },
+            }
+            hotspots << hotspot
+            counter += 1
+          end
+        end
+      rescue Exception => error
+        # TODO Catch errors better
+        logger.error "Error: #{error}"
+      end
+    end
+
+    #
+    # Second source: look for any tweets that were made nearby and also use the right hash tags.
+    #
+
+    # Details about the Twitter Search API (simpler than the full API):
+    # Twitter Search API: https://dev.twitter.com/docs/using-search
+    #
+    # Responses: https://dev.twitter.com/docs/platform-objects/tweets
+    #
+    # Geolocating of tweets in the response:
+    # https://dev.twitter.com/docs/platform-objects/tweets#obj-coordinates
+
+    radius_km = radius / 1000 # Twitter wants the radius in km
+
+    # Test search: geolocated only (grabs a lot of results, good for making sure things work)
+    # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+
+    # The real search: hashtag plus geolocated
+    twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+    logger.info "Twitter search URL: #{twitter_search_url}"
+
+    open(twitter_search_url) do |f|
+      unless f.status[0] == "200"
+        logger.error f.status
+        # Set up error for Layar
+      else
+        @twitter = JSON.parse(f.read)
+      end
+    end
+
+    # TODO: Wrap this in a loop so we page back through results until we get
+    # n results?  Or will this be a problem when there's a large cluster of
+    # geolocated tweets happening with the same hash tag?
+
+    logger.info "Found #{@twitter['results'].size} results"
+
+    @twitter["results"].each do |r|
+      # puts r["from_user"]
+      if r["geo"]
+        # There is a known latitude and longitude. (Otherwise it's null.)
+        # By the way, there is only one kind of point, so this will always be true:
+        # r["geo"]["type"] == "Point"
+
+        # Same as before: ignore if the point is not within the radius
+        latitude, longitude = r["geo"]["coordinates"]
+        # No: rely on Twitter to do it, because we're specifying it in the query.
+        # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
+
+        hotspot = {
+          "id" => r["id"],
+          "text" => {
+            "title" => "@#{r["from_user"]} (#{r["from_user_name"]})",
+            "description" => r["text"],
+            "footnote" => since(r["created_at"])
+          },
+          # TODO Show local time, or how long ago.
+          "anchor" => {
+            "geolocation" => {
+              "lat" => latitude,
+              "lon" => longitude
+            }
+          },
+          "imageURL" => r["profile_image_url"],
+          "icon" => {
+            "url" => r["profile_image_url"],
+            "type" =>  0
+          },
+        }
+        # puts hotspot["text"]["title"]
+        hotspots << hotspot
+      end
+    end
+
+    #
+    # Add more sources here!
+    #
+
+    #
+    # Finish by feeding everything back to Layar as JSON.
+    #
+
+    # Sort hotspots by distance
+    hotspots.sort! {|x, y|
+      distance_between(params[:lat], params[:lon], x["anchor"]["geolocation"]["lat"], x["anchor"]["geolocation"]["lon"]) <=>
+      distance_between(params[:lat], params[:lon], y["anchor"]["geolocation"]["lat"], y["anchor"]["geolocation"]["lon"])
+    }
+
+    if hotspots.length == 0
+      errorcode = 21
+      errorstring = "No results found.  Try adjusting your search range and any filters."
+      # TODO Customize the error message.
+    end
+
+    # In theory we should return up to 50 POIs here (hotspots[0..49]),
+    # and if there are more the user would have to page through them.
+    # But let's just return them all and let Layar deal with it.
+    # TODO Add paging through large sets of results.
+
+    response = {
+      "layer"           => layer["layer"],
+      "showMessage"     => layer["showMessage"],
+      "refreshDistance" => 300,
+      "refreshInterval" => 100,
+      "hotspots"        => hotspots,
+      "errorCode"       => errorcode,
+      "errorString"     => errorstring,
+    }
+
+    # "NOTE that this parameter must be returned if the GetPOIs request
+    # doesn't contain a requested radius. It cannot be used to overrule a
+    # value of radius if that was provided in the request. the unit is
+    # meter."
+    # -- http://layar.com/documentation/browser/api/getpois-response/#root-radius
+    if ! params["radius"]
+      response["radius"] = radius
+    end
+
+  else # The requested layer is not known, so return an error
+
     errorcode = 22
     errorstring = "No such layer (#{params[:layerName]}) exists"
     response = {
-      "layer"           => params[:layarName],
+      "layer"           => params[:layerName],
       "refreshDistance" => 300,
       "refreshInterval" => 100,
       "hotspots"        => [],
       "errorCode"       => errorcode,
       "errorString"     => errorstring,
     }
-    STDERR.puts "#{errorstring} (#{error})"
-    response.to_json
-    exit
+    logger.error errorstring
+
   end
 
   # TODO Fail with an error if no lat and lon are given
-
-  radius = params[:radius].to_f || 1500 # Default to 1500m radius if none provided
-  hotspots = []
-
-  icon_url = layer["icon_url"] || "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png"
-
-  #
-  # First source: grab points of interest from Google Maps.
-  #
-
-  counter = 1;
-  layer["google_maps"].each do |map_url|
-    begin
-      kml = Nokogiri::XML(open(map_url + "&output=kml"))
-      kml.xpath("//xmlns:Placemark").each do |p|
-        if p.css("Point").size > 0 # Nicer way to ignore everything that doesn't have a Point element?
-
-          # Some of the points will be out of range, but lets assume there won't be too many,
-          # and we'll deal with it below
-
-          # Ignore all points that are too far away
-          longitude, latitude, altitude = p.css("coordinates").text.split(",")
-          next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
-
-          # But if it's within range, build the hotspot information for Layar
-          hotspot = {
-            "id" => counter, # Could keep a counter but this is good enough
-            "text" => {
-              "title" => p.css("name").text,
-              "description" => Nokogiri::HTML(p.css("description").text).css("div").text,
-              # For the description, which is in HTML, we need to pick out the text of the
-              # element from the XML and then parse it as HTML.  I think.  Seems kooky.
-              "footnote" => ""
-            },
-            "anchor" => {
-              "geolocation" => {
-                "lat" => latitude.to_f,
-                "lon" => longitude.to_f
-              }
-            },
-            "imageURL" => icon_url,
-            "icon" => {
-              "url" => icon_url,
-              "type" =>  0
-            },
-          }
-          hotspots << hotspot
-          counter += 1
-        end
-      end
-    rescue Exception => error
-      # TODO Catch errors better
-      STDERR.puts "Error: #{error}"
-    end
-  end
-
-  #
-  # Second source: look for any tweets that were made nearby and also use the right hash tags.
-  #
-
-  # Details about the Twitter Search API (simpler than the full API):
-  # Twitter Search API: https://dev.twitter.com/docs/using-search
-  #
-  # Responses: https://dev.twitter.com/docs/platform-objects/tweets
-  #
-  # Geolocating of tweets in the response:
-  # https://dev.twitter.com/docs/platform-objects/tweets#obj-coordinates
-
-  radius_km = radius / 1000 # Twitter wants the radius in km
-
-  # Test search: geolocated only (grabs a lot of results, good for making sure things work)
-  # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
-
-  # The real search: hashtag plus geolocated
-  twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
-  STDERR.puts "Getting #{twitter_search_url}"
-
-  open(twitter_search_url) do |f|
-    unless f.status[0] == "200"
-      STDERR.puts f.status
-      # Set up error for Layar
-    else
-      @twitter = JSON.parse(f.read)
-    end
-  end
-
-  # TODO: Wrap this in a loop so we page back through results until we get
-  # n results?  Or will this be a problem when there's a large cluster of
-  # geolocated tweets happening with the same hash tag?
-
-  @twitter["results"].each do |r|
-    # puts r["from_user"]
-    if r["geo"]
-      # There is a known latitude and longitude. (Otherwise it's null.)
-      # By the way, there is only one kind of point, so this will always be true:
-      # r["geo"]["type"] == "Point"
-
-      # Same as before: ignore if the point is not within the radius
-      latitude, longitude = r["geo"]["coordinates"]
-      # No: rely on Twitter to do it, because we're specifying it in the query.
-      # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
-
-      hotspot = {
-        "id" => r["id"],
-        "text" => {
-          "title" => "@#{r["from_user"]} (#{r["from_user_name"]})",
-          "description" => r["text"],
-          "footnote" => since(r["created_at"])
-        },
-        # TODO Show local time, or how long ago.
-        "anchor" => {
-          "geolocation" => {
-            "lat" => latitude,
-            "lon" => longitude
-          }
-        },
-        "imageURL" => r["profile_image_url"],
-        "icon" => {
-          "url" => r["profile_image_url"],
-          "type" =>  0
-        },
-      }
-      # puts hotspot["text"]["title"]
-      hotspots << hotspot
-    end
-  end
-
-  #
-  # Add more sources here!
-  #
-
-  #
-  # Finish by feeding everything back to Layar as JSON.
-  #
-
-  # Sort hotspots by distance
-  hotspots.sort! {|x, y|
-    distance_between(params[:lat], params[:lon], x["anchor"]["geolocation"]["lat"], x["anchor"]["geolocation"]["lon"]) <=>
-    distance_between(params[:lat], params[:lon], y["anchor"]["geolocation"]["lat"], y["anchor"]["geolocation"]["lon"])
-  }
-
-  if hotspots.length == 0
-    errorcode = 21
-    errorstring = "No results found.  Try adjusting your search range and any filters."
-    # TODO Customize the error message.
-  end
-
-  # In theory we should return up to 50 POIs here (hotspots[0..49]),
-  # and if there are more the user would have to page through them.
-  # But let's just return them all and let Layar deal with it.
-  # TODO Add paging through large sets of results.
-
-  response = {
-    "layer"           => layer["layer"],
-    "showMessage"     => layer["showMessage"],
-    "refreshDistance" => 300,
-    "refreshInterval" => 100,
-    "hotspots"        => hotspots,
-    "errorCode"       => errorcode,
-    "errorString"     => errorstring,
-  }
-
-  # "NOTE that this parameter must be returned if the GetPOIs request
-  # doesn't contain a requested radius. It cannot be used to overrule a
-  # value of radius if that was provided in the request. the unit is
-  # meter."
-  # -- http://layar.com/documentation/browser/api/getpois-response/#root-radius
-  if ! params["radius"]
-    response["radius"] = radius
-  end
 
   response.to_json
 
