@@ -172,7 +172,8 @@ get "/" do
 
   # twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search]) + "&rpp=100"
   # twitter_search_url = "https://search.twitter.com/search.json?geocode=43.6,-79.4,5km&rpp=100"
-  twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+  # twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+  twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
   STDERR.puts "Getting #{twitter_search_url}"
 
   open(twitter_search_url) do |f|
