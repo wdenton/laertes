@@ -343,7 +343,7 @@ def since(t)
   elsif dd == 1
     return "#{dd} day and #{hh} hours ago"
   elsif hh > 0
-    return "#{hh} hours and #{mm} minutes ago"
+    return "#{hh} hour" + (hh == 1 ? "" : "s") + " and #{mm} minutes ago"
   else
     return "#{mm} minutes ago"
   end
