@@ -158,7 +158,11 @@ get "/" do
     # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
 
     # The real search: hashtag plus geolocated
-    twitter_search_url = "https://search.twitter.com/search.json?q=" + CGI.escape(layer["search"]) + "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+    twitter_search_url =
+      "https://search.twitter.com/search.json?q=" +
+      CGI.escape(layer["search"]) +
+      "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km" +
+      "&rpp=100&include_entities=1"
     logger.info "Twitter search URL: #{twitter_search_url}"
 
     open(twitter_search_url) do |f|
@@ -201,14 +205,28 @@ get "/" do
               "lat" => latitude,
               "lon" => longitude
             }
-          },
-          "imageURL" => r["profile_image_url"].gsub("normal", "bigger"), # https://dev.twitter.com/docs/user-profile-images-and-banners
-          "icon" => {
-            "url" => r["profile_image_url"],
-            "type" =>  0
-          },
+          }
         }
-        # puts hotspot["text"]["title"]
+
+        # imageURL is the image in the BIW, the banner at the bottom
+        STDERR.puts r["from_user"]
+        STDERR.puts r["profile_image_url"]
+        hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
+
+        # icon is the image in the CIW, floating in space
+        # By saying "include_entities=1" in the search URL we retrieve more information ...
+        # if someone attached a photo to a tweet, show it instead of their profile image
+        # Documentation: https://dev.twitter.com/docs/tweet-entities
+        if r["entities"] && r["entities"]["media"] && r["entities"]["media"] == "photo"
+          icon_url = r["entities"]["media"]["media_url"] + ":thumb"
+        else
+          icon_url = r["profile_image_url"]
+        end
+        hotspot["icon"] = {
+            "url" => icon_url,
+            "type" =>  0
+        }
+
         hotspots << hotspot
       end
     end
