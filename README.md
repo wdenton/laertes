@@ -115,4 +115,24 @@ The last step is to set up a layer at [Layar](http://www.layar.com/).  Set up an
 
 That will create a layer.  There are many more options you can configure, but you don't need to bother with them now.
 
-Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Vision mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
+Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Layers mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
+
+## Using it
+
+Tell people to:
+
+* install Layar
+* go into Geo Layers mode
+* search for your layer
+* look around
+
+Tweets must be geolocated to appear.  To do this in the official Twitter client you will need to enable this in settings, and then enable it for each individual tweet you want to locate by pressing the little button icon.
+
+# Contact information
+
+I'm interested in hearing anything about this: I'm William Denton <[wtd@pobox.com](mailto:wtd@pobox.com)>.
+
+Bug reports, pull requests, suggestions, comments and feedback are all welcome.
+
+
+

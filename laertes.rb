@@ -209,8 +209,8 @@ get "/" do
         }
 
         # imageURL is the image in the BIW, the banner at the bottom
-        STDERR.puts r["from_user"]
-        STDERR.puts r["profile_image_url"]
+        # STDERR.puts r["from_user"]
+        # STDERR.puts r["profile_image_url"]
         hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
 
         # icon is the image in the CIW, floating in space
