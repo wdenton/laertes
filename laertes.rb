@@ -217,8 +217,15 @@ get "/" do
         # By saying "include_entities=1" in the search URL we retrieve more information ...
         # if someone attached a photo to a tweet, show it instead of their profile image
         # Documentation: https://dev.twitter.com/docs/tweet-entities
-        if r["entities"] && r["entities"]["media"] && r["entities"]["media"] == "photo"
-          icon_url = r["entities"]["media"]["media_url"] + ":thumb"
+        if r["entities"] && r["entities"]["media"]
+          # There is media attached.  Look for an attached photo.
+          r["entities"]["media"].each do |m|
+            # Will there ever be more than one?
+            if m["type"] && m["type"] == "photo"
+              icon_url = m["media_url"] + ":thumb"
+              logger.info "#{r['id']} has photo attached, icon_url = #{icon_url}"
+            end
+          end
         else
           icon_url = r["profile_image_url"]
         end
