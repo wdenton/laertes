@@ -195,9 +195,9 @@ get "/" do
         hotspot = {
           "id" => r["id"],
           "text" => {
-            "title" => "@#{r["from_user"]} (#{r["from_user_name"]})",
+            "title"       => "@#{r["from_user"]} (#{r["from_user_name"]})",
             "description" => r["text"],
-            "footnote" => since(r["created_at"])
+            "footnote"    => since(r["created_at"])
           },
           # TODO Show local time, or how long ago.
           "anchor" => {
@@ -209,21 +209,19 @@ get "/" do
         }
 
         # imageURL is the image in the BIW, the banner at the bottom
-        # STDERR.puts r["from_user"]
-        # STDERR.puts r["profile_image_url"]
         hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
 
-        # Set up an action so the person can go to Twitter and see the actual tweet,
-        # and from there reply or retweet or whatever.  Leave it up to the system about
-        # what to do when going to a Twitter URL; that's out of our hands.
-        tweet_url = "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"]
-        logger.debug "Tweet URL: #{tweet_url}"
+        # Set up an action so the person can go to Twitter and see the
+        # actual tweet.  Unfortunately Layar opens web pages
+        # internally and doesn't pass them over to a preferred
+        # application.
+        # See http://layar.com/documentation/browser/api/getpois-response/actions/
         hotspot["actions"] = [{
-          "uri" => tweet_url,
-          "label" => "Read on Twitter",
-          "contentType" => "text/html",
-          "activityType" => 27, # Show eye icon, see http://layar.com/documentation/browser/api/getpois-response/actions/ for all details
-          "method" => "GET"
+          "uri"          => "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"],
+          "label"        => "Read on Twitter",
+          "contentType"  => "text/html",
+          "activityType" => 27, # Show eye icon
+          "method"       => "GET"
         }]
 
         # icon is the image in the CIW, floating in space
