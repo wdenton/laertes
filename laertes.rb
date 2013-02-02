@@ -218,13 +218,13 @@ get "/" do
         # what to do when going to a Twitter URL; that's out of our hands.
         tweet_url = "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"]
         logger.debug "Tweet URL: #{tweet_url}"
-        hotspot["action"] = {
+        hotspot["actions"] = [{
           "uri" => tweet_url,
           "label" => "Read on Twitter",
-          "contentType" => "application/vnd.layar.internal",
-          "activityType" => 1,
+          "contentType" => "text/html",
+          "activityType" => 27, # Show eye icon, see http://layar.com/documentation/browser/api/getpois-response/actions/ for all details
           "method" => "GET"
-        }
+        }]
 
         # icon is the image in the CIW, floating in space
         # By saying "include_entities=1" in the search URL we retrieve more information ...
