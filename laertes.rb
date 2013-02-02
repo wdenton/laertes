@@ -213,6 +213,19 @@ get "/" do
         # STDERR.puts r["profile_image_url"]
         hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
 
+        # Set up an action so the person can go to Twitter and see the actual tweet,
+        # and from there reply or retweet or whatever.  Leave it up to the system about
+        # what to do when going to a Twitter URL; that's out of our hands.
+        tweet_url = "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"]
+        logger.debug "Tweet URL: #{tweet_url}"
+        hotspot["action"] = {
+          "uri" => tweet_url,
+          "label" => "Read on Twitter",
+          "contentType" => "application/vnd.layar.internal",
+          "activityType" => 1,
+          "method" => "GET"
+        }
+
         # icon is the image in the CIW, floating in space
         # By saying "include_entities=1" in the search URL we retrieve more information ...
         # if someone attached a photo to a tweet, show it instead of their profile image
