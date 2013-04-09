@@ -83,67 +83,123 @@ get "/" do
 
   layer = settings.config.find {|l| l["layer"] == params[:layerName] }
 
+  show_tweets = true
+  show_map_points = true
+
   if layer
 
-    radius = params[:radius].to_f || 1500 # Default to 1500m radius if none provided
+    radius = 1500 # Default to 1500m radius if none provided
+
+    if params[:radius] # But override it if another radius is passed in
+      radius = params[:radius].to_f
+    end
+
     hotspots = []
 
     icon_url = layer["icon_url"] || "https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png"
+
+    # Along with the mandatory search radius option, two others can be set up.
+    #
+    # First, a checkbox to set which or both of tweets and map points should be shown.
+    # Use these values:
+    # CHECKBOXLIST = 1 : Show tweets
+    # CHECKBOXLIST = 2 : Show map points
+    #
+    if params[:CHECKBOXLIST]
+      checkboxes = params[:CHECKBOXLIST].split(",")
+      logger.debug "Checkboxes = #{checkboxes}"
+      if ! checkboxes.include? "1"
+        show_tweets = false
+        logger.debug "Not showing tweets"
+      end
+      if ! checkboxes.include? "2"
+        show_map_points = false
+        logger.debug "Not showing map points"
+      end
+    end
+
+    if ! show_tweets and ! show_map_points
+      logger.debug "This will not be informative"
+    end
+
+    # CHECKBOXLIST=1&version=7.1&radius=2000&lat=43.6840131&layerName=laertesdev&action=refresh&acc
+    # CHECKBOXLIST=1%2C2
+
+    # Second, radio buttons to limit tweets to certain time ranges:
+    # RADIOLIST = 1: Last hour
+    # RADIOLIST = 4: Last 4 hours
+    # RADIOLIST = 8: Last 24 hours
+    # RADIOLIST = 16: Today
+    # RADIOLIST = 32: All
+    tweet_time_limit = 100000  # Hours, some very high number by default
+    case params[:RADIOLIST]
+    when 1
+      tweet_time_limit = 1
+    when 4
+      tweet_time_limit = 4
+    when 8
+      tweet_time_limit = 24
+    when 16
+      # Need to calculate what "today" means
+      tweet_time_limit = 1
+    end
+
+    counter = 1;
 
     #
     # First source: grab points of interest from Google Maps.
     #
 
-    counter = 1;
-    layer["google_maps"].each do |map_url|
-      begin
-        kml = Nokogiri::XML(open(map_url + "&output=kml"))
-        kml.xpath("//xmlns:Placemark").each do |p|
-          if p.css("Point").size > 0 # Nicer way to ignore everything that doesn't have a Point element?
+    if show_map_points
+      layer["google_maps"].each do |map_url|
+        begin
+          kml = Nokogiri::XML(open(map_url + "&output=kml"))
+          kml.xpath("//xmlns:Placemark").each do |p|
+            if p.css("Point").size > 0 # Nicer way to ignore everything that doesn't have a Point element?
 
-            # Some of the points will be out of range, but lets assume there won't be too many,
-            # and we'll deal with it below
+              # Some of the points will be out of range, but lets assume there won't be too many,
+              # and we'll deal with it below
 
-            # Ignore all points that are too far away
-            longitude, latitude, altitude = p.css("coordinates").text.split(",")
-            next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
+              # Ignore all points that are too far away
+              longitude, latitude, altitude = p.css("coordinates").text.split(",")
+              next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
 
-            # But if it's within range, build the hotspot information for Layar
-            hotspot = {
-              "id" => counter, # Could keep a counter but this is good enough
-              "text" => {
-                "title" => p.css("name").text,
-                "description" => Nokogiri::HTML(p.css("description").text).css("div").text,
-                # For the description, which is in HTML, we need to pick out the text of the
-                # element from the XML and then parse it as HTML.  I think.  Seems kooky.
-                "footnote" => ""
-              },
-              "anchor" => {
-                "geolocation" => {
-                  "lat" => latitude.to_f,
-                  "lon" => longitude.to_f
-                }
-              },
-              "imageURL" => icon_url,
-              "icon" => {
-                "url" => icon_url,
-                "type" =>  0
-              },
-            }
-            hotspots << hotspot
-            counter += 1
+              # But if it's within range, build the hotspot information for Layar
+              hotspot = {
+                "id" => counter, # Could keep a counter but this is good enough
+                "text" => {
+                  "title" => p.css("name").text,
+                  "description" => Nokogiri::HTML(p.css("description").text).css("div").text,
+                  # For the description, which is in HTML, we need to pick out the text of the
+                  # element from the XML and then parse it as HTML.  I think.  Seems kooky.
+                  "footnote" => ""
+                },
+                "anchor" => {
+                  "geolocation" => {
+                    "lat" => latitude.to_f,
+                    "lon" => longitude.to_f
+                  }
+                },
+                "imageURL" => icon_url,
+                "icon" => {
+                  "url" => icon_url,
+                  "type" =>  0
+                },
+              }
+              hotspots << hotspot
+              counter += 1
+            end
           end
+        rescue Exception => error
+          # TODO Catch errors better
+          logger.error "Error: #{error}"
         end
-      rescue Exception => error
-        # TODO Catch errors better
-        logger.error "Error: #{error}"
       end
     end
 
     #
     # Second source: look for any tweets that were made nearby and also use the right hash tags.
     #
-
     # Details about the Twitter Search API (simpler than the full API):
     # Twitter Search API: https://dev.twitter.com/docs/using-search
     #
@@ -152,100 +208,104 @@ get "/" do
     # Geolocating of tweets in the response:
     # https://dev.twitter.com/docs/platform-objects/tweets#obj-coordinates
 
-    radius_km = radius / 1000 # Twitter wants the radius in km
+    if show_tweets
+      radius_km = radius / 1000 # Twitter wants the radius in km
 
-    # Test search: geolocated only (grabs a lot of results, good for making sure things work)
-    # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
+      # Test search: geolocated only (grabs a lot of results, good for making sure things work)
+      # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
 
-    # The real search: hashtag plus geolocated
-    twitter_search_url =
-      "https://search.twitter.com/search.json?q=" +
-      CGI.escape(layer["search"]) +
-      "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km" +
-      "&rpp=100&include_entities=1"
-    logger.info "Twitter search URL: #{twitter_search_url}"
+      # The real search: hashtag plus geolocated
+      twitter_search_url =
+        "https://search.twitter.com/search.json?q=" +
+        CGI.escape(layer["search"]) +
+        "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km" +
+        "&rpp=100&include_entities=1"
+      logger.info "Twitter search URL: #{twitter_search_url}"
 
-    open(twitter_search_url) do |f|
-      unless f.status[0] == "200"
-        logger.error f.status
-        # Set up error for Layar
-      else
-        @twitter = JSON.parse(f.read)
+      open(twitter_search_url) do |f|
+        unless f.status[0] == "200"
+          logger.error f.status
+          # Set up error for Layar
+        else
+          @twitter = JSON.parse(f.read)
+        end
       end
-    end
 
-    # TODO: Wrap this in a loop so we page back through results until we get
-    # n results?  Or will this be a problem when there's a large cluster of
-    # geolocated tweets happening with the same hash tag?
+      # TODO: Wrap this in a loop so we page back through results until we get
+      # n results?  Or will this be a problem when there's a large cluster of
+      # geolocated tweets happening with the same hash tag?
 
-    logger.info "Found #{@twitter['results'].size} results"
+      logger.info "Found #{@twitter['results'].size} results"
 
-    @twitter["results"].each do |r|
-      # puts r["from_user"]
-      if r["geo"]
-        # There is a known latitude and longitude. (Otherwise it's null.)
-        # By the way, there is only one kind of point, so this will always be true:
-        # r["geo"]["type"] == "Point"
+      @twitter["results"].each do |r|
+        # puts r["from_user"]
+        if r["geo"]
+          # There is a known latitude and longitude. (Otherwise it's null.)
+          # By the way, there is only one kind of point, so this will always be true:
+          # r["geo"]["type"] == "Point"
 
-        # Same as before: ignore if the point is not within the radius
-        latitude, longitude = r["geo"]["coordinates"]
-        # No: rely on Twitter to do it, because we're specifying it in the query.
-        # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
+          # Same as before: ignore if the point is not within the radius
+          latitude, longitude = r["geo"]["coordinates"]
+          # No: rely on Twitter to do it, because we're specifying it in the query.
+          # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
 
-        hotspot = {
-          "id" => r["id"],
-          "text" => {
-            "title"       => "@#{r["from_user"]} (#{r["from_user_name"]})",
-            "description" => r["text"],
-            "footnote"    => since(r["created_at"])
-          },
-          # TODO Show local time, or how long ago.
-          "anchor" => {
-            "geolocation" => {
-              "lat" => latitude,
-              "lon" => longitude
+          logger.debug "Tweet created at: #{r["created_at"]}"
+
+          hotspot = {
+            "id" => r["id"],
+            "text" => {
+              "title"       => "@#{r["from_user"]} (#{r["from_user_name"]})",
+              "description" => r["text"],
+              "footnote"    => since(r["created_at"])
+            },
+            # TODO Show local time, or how long ago.
+            "anchor" => {
+              "geolocation" => {
+                "lat" => latitude,
+                "lon" => longitude
+              }
             }
           }
-        }
 
-        # imageURL is the image in the BIW, the banner at the bottom
-        hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
+          # imageURL is the image in the BIW, the banner at the bottom
+          hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
 
-        # Set up an action so the person can go to Twitter and see the
-        # actual tweet.  Unfortunately Layar opens web pages
-        # internally and doesn't pass them over to a preferred
-        # application.
-        # See http://layar.com/documentation/browser/api/getpois-response/actions/
-        hotspot["actions"] = [{
-          "uri"          => "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"],
-          "label"        => "Read on Twitter",
-          "contentType"  => "text/html",
-          "activityType" => 27, # Show eye icon
-          "method"       => "GET"
-        }]
+          # Set up an action so the person can go to Twitter and see the
+          # actual tweet.  Unfortunately Layar opens web pages
+          # internally and doesn't pass them over to a preferred
+          # application.
+          # See http://layar.com/documentation/browser/api/getpois-response/actions/
+          hotspot["actions"] = [{
+              "uri"          => "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"],
+              "label"        => "Read on Twitter",
+              "contentType"  => "text/html",
+              "activityType" => 27, # Show eye icon
+              "method"       => "GET"
+            }]
 
-        # icon is the image in the CIW, floating in space
-        # By saying "include_entities=1" in the search URL we retrieve more information ...
-        # if someone attached a photo to a tweet, show it instead of their profile image
-        # Documentation: https://dev.twitter.com/docs/tweet-entities
-        if r["entities"] && r["entities"]["media"]
-          # There is media attached.  Look for an attached photo.
-          r["entities"]["media"].each do |m|
-            # Will there ever be more than one?
-            if m["type"] && m["type"] == "photo"
-              icon_url = m["media_url"] + ":thumb"
-              logger.info "#{r['id']} has photo attached, icon_url = #{icon_url}"
+          # icon is the image in the CIW, floating in space
+          # By saying "include_entities=1" in the search URL we retrieve more information ...
+          # if someone attached a photo to a tweet, show it instead of their profile image
+          # Documentation: https://dev.twitter.com/docs/tweet-entities
+          if r["entities"] && r["entities"]["media"]
+            # There is media attached.  Look for an attached photo.
+            r["entities"]["media"].each do |m|
+              # Will there ever be more than one?
+              if m["type"] && m["type"] == "photo"
+                icon_url = m["media_url"] + ":thumb"
+                logger.info "#{r['id']} has photo attached, icon_url = #{icon_url}"
+              end
             end
+          else
+            icon_url = r["profile_image_url"]
           end
-        else
-          icon_url = r["profile_image_url"]
-        end
-        hotspot["icon"] = {
+          hotspot["icon"] = {
             "url" => icon_url,
             "type" =>  0
-        }
+          }
 
-        hotspots << hotspot
+          hotspots << hotspot
+        end
       end
     end
 
