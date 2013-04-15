@@ -24,6 +24,7 @@
 
 require 'json'
 require 'time'
+require 'date'
 require 'cgi'
 
 require 'rubygems'
@@ -131,19 +132,29 @@ get "/" do
     # RADIOLIST = 8: Last 24 hours
     # RADIOLIST = 16: Today
     # RADIOLIST = 32: All
-    tweet_time_limit = 100000  # Hours, some very high number by default
-    case params[:RADIOLIST]
+    t = Time.now
+    tweet_time_limit = nil
+    case params[:RADIOLIST].to_f
     when 1
-      tweet_time_limit = 1
+      tweet_time_limit = t - 60*60 # One hour
     when 4
-      tweet_time_limit = 4
+      tweet_time_limit = t - 4*60*60 # Four hours
     when 8
-      tweet_time_limit = 24
+      tweet_time_limit = t - 24*60*60 # 24 hours
+      logger.debug "I saw an 8"
     when 16
-      # Need to calculate what "today" means
-      tweet_time_limit = 1
+      tweet_time_limit = t.to_date.to_time # Strips time to 00:00:00, ie "today"
+    when 32
+      # Leave it at nil
     end
 
+    if tweet_time_limit
+      logger.debug "Tweet time limit set to '#{tweet_time_limit}'"
+    end
+    
+# http://stackoverflow.com/questions/279769/convert-to-from-datetime-and-time-in-ruby
+# http://stackoverflow.com/questions/238684/subtract-n-hours-from-a-datetime-in-ruby
+    
     counter = 1;
 
     #
@@ -251,6 +262,12 @@ get "/" do
 
           logger.debug "Tweet created at: #{r["created_at"]}"
 
+          if tweet_time_limit
+            logger.debug "Tweet time limit: #{tweet_time_limit}";
+            time_difference = DateTime.parse(r["created_at"]) - tweet_time_limit
+            logger.debug "Time difference: #{time_difference}"
+          end
+          
           hotspot = {
             "id" => r["id"],
             "text" => {
