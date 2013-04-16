@@ -86,7 +86,8 @@ get "/" do
 
   show_tweets = true
   show_map_points = true
-
+  tweet_time_limit = nil
+  
   if layer
 
     radius = 1500 # Default to 1500m radius if none provided
@@ -111,11 +112,11 @@ get "/" do
       logger.debug "Checkboxes = #{checkboxes}"
       if ! checkboxes.include? "1"
         show_tweets = false
-        logger.debug "Not showing tweets"
+        logger.info "Not showing tweets"
       end
       if ! checkboxes.include? "2"
         show_map_points = false
-        logger.debug "Not showing map points"
+        logger.info "Not showing map points"
       end
     end
 
@@ -133,15 +134,13 @@ get "/" do
     # RADIOLIST = 16: Today
     # RADIOLIST = 32: All
     t = Time.now
-    tweet_time_limit = nil
-    case params[:RADIOLIST].to_f
+    case params[:RADIOLIST].to_i
     when 1
       tweet_time_limit = t - 60*60 # One hour
     when 4
       tweet_time_limit = t - 4*60*60 # Four hours
     when 8
       tweet_time_limit = t - 24*60*60 # 24 hours
-      logger.debug "I saw an 8"
     when 16
       tweet_time_limit = t.to_date.to_time # Strips time to 00:00:00, ie "today"
     when 32
@@ -149,7 +148,7 @@ get "/" do
     end
 
     if tweet_time_limit
-      logger.debug "Tweet time limit set to '#{tweet_time_limit}'"
+      logger.info "Tweet time limit set to '#{tweet_time_limit}' with parameter #{params[:RADIOLIST].to_i}"
     end
     
 # http://stackoverflow.com/questions/279769/convert-to-from-datetime-and-time-in-ruby
@@ -208,6 +207,8 @@ get "/" do
       end
     end
 
+    logger.debug "Map points returned: #{hotspots.length}"
+
     #
     # Second source: look for any tweets that were made nearby and also use the right hash tags.
     #
@@ -246,10 +247,13 @@ get "/" do
       # n results?  Or will this be a problem when there's a large cluster of
       # geolocated tweets happening with the same hash tag?
 
-      logger.info "Found #{@twitter['results'].size} results"
-
+      logger.info "Search returned #{@twitter['results'].size} results"
       @twitter["results"].each do |r|
         # puts r["from_user"]
+        if tweet_time_limit and Time.parse(r["created_at"]) < tweet_time_limit
+          logger.debug "Skipping tweet #{r["id"]}: #{Time.parse(r["created_at"])} < #{tweet_time_limit}" 
+          next
+        end
         if r["geo"]
           # There is a known latitude and longitude. (Otherwise it's null.)
           # By the way, there is only one kind of point, so this will always be true:
@@ -260,14 +264,8 @@ get "/" do
           # No: rely on Twitter to do it, because we're specifying it in the query.
           # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
 
-          logger.debug "Tweet created at: #{r["created_at"]}"
+          logger.debug "Using tweet #{r["id"]}: #{r["created_at"]}"
 
-          if tweet_time_limit
-            logger.debug "Tweet time limit: #{tweet_time_limit}";
-            time_difference = DateTime.parse(r["created_at"]) - tweet_time_limit
-            logger.debug "Time difference: #{time_difference}"
-          end
-          
           hotspot = {
             "id" => r["id"],
             "text" => {
@@ -340,6 +338,8 @@ get "/" do
       distance_between(params[:lat], params[:lon], y["anchor"]["geolocation"]["lat"], y["anchor"]["geolocation"]["lon"])
     }
 
+    logger.info "Hotspots returned: #{hotspots.length}"
+    
     if hotspots.length == 0
       errorcode = 21
       errorstring = "No results found.  Try adjusting your search range and any filters."
