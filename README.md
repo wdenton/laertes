@@ -11,7 +11,7 @@ Laertes is written in [Ruby](http://www.ruby-lang.org/en/) using the [Sinatra](h
 
 You will need to have Ruby and [Rubygems](http://rubygems.org/) installed for this to work.  You can either do that through a package manager or by using [RVM](https://rvm.io/), which is probably easiest in the long run and will help you avoid problems with different Ruby versions.
 
-For the Ruby XML parser `nokogiri` to run [there are further requirments](http://nokogiri.org/tutorials/installing_nokogiri.html). On a Debian/Ubuntu system you will need to run this (but don't run the Ruby installation commands they mention if you're set up with RVM):
+For the Ruby XML parser `nokogiri` to run [there are extra installation requirements](http://nokogiri.org/tutorials/installing_nokogiri.html). On a Debian/Ubuntu system you will need to run this (but don't run the Ruby installation commands they mention if you're set up with RVM):
 
     $ sudo apt-get install libxslt1-dev libxml2-dev
 
@@ -111,7 +111,7 @@ Heroku will tell you it's set up the service for you at `some-outlandish-hostnam
 
 The last step is to set up a layer at [Layar](http://www.layar.com/).  Set up an account if you don't have one.  Then go to My Layers and look for the "create a new layer" option.  You will need to configure some options:
 
-* Layer name: this will need to match an entry in your `config.json` file.
+* Layer name: this must match an entry in your `config.json` file.
 * Title: Human-readable title.
 * Short description: A short paragraph about what this is.  You can edit it later.
 * API endpoint URL: `http://some-outlandish-hostname-2112.herokuapp.com/` or whatever your Heroku URL is, or wherever it is you're hosting Laertes.
@@ -121,9 +121,11 @@ That will create a layer.  There are many more options you can configure, but yo
 
 Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Layers mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
 
-## Filter 1: tweets and/or map points
+### Filter 1: tweets and/or map points
 
-## Filter 2: time limits on tweets
+![Screenshot of tweet/map point filter](images/laertes-readme-checkbox.png "Tweets and/or map points")
+
+### Filter 2: time limits on tweets
 
 # Using it
 
