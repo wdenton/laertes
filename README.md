@@ -121,13 +121,23 @@ That will create a layer.  There are many more options you can configure, but yo
 
 Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Layers mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
 
+There are two filters available in Laertes. You can set up one or both.  Layar only allows one of each possible filter type, so if you configure a any checkbox filter Laertes will treat it as a tweet/map point filter, and and any radio button filter will be treated a tweet time limit filter.
+
 ### Filter 1: tweets and/or map points
+
+If there are many tweets and many map points the visual display can be confusing. This filter lets the user see just tweets, just map points, or both (or none, but that doesn't make much sense).
 
 ![Screenshot of tweet/map point filter](images/laertes-readme-checkbox.png "Filter to show tweets and/or map points")
 
+Configure it in Layer in the Filters option. You can use different text, but you must use 1 for tweets and 2 for map points.
+
 ### Filter 2: time limits on tweets
 
+Tweets from two days ago get in the way when someone wants to know what's going on right now.  This filter lets the user limits tweets by time.
+
 ![Screenshot of tweet time filter](images/laertes-readme-radio-button.png "Filter to limit tweets by time")
+
+The option values and time limits are hard coded. You can adjust the text slightly but that will not change how the filter works, if a radio button list is present.
 
 # Using it
 
