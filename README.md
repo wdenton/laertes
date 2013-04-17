@@ -157,6 +157,7 @@ Tell people to:
 * install Layar
 * go into Geo Layers mode
 * search for your layer
+* launch it (and mark it as a favourite so it's easier to find later)
 * look around
 
 Tweets must be geolocated to appear.  To do this in the official Twitter client you will need to enable this in settings, and then enable it for each individual tweet you want to locate by pressing the little button icon.
