@@ -9,7 +9,7 @@ With Laertes and Layar you can hold up your smartphone and pan around and see wh
 
 Laertes is written in [Ruby](http://www.ruby-lang.org/en/) using the [Sinatra](http://www.sinatrarb.com/) web application framework.  There is no database---it does everything on the fly by calling APIs.
 
-You will need to have Ruby and [Rubygems](http://rubygems.org/) installed for this to work.  You can either do that through a package manger by using [RVM](https://rvm.io/), which is probably easiest in the long run and will help you avoid problems with different Ruby versions.
+You will need to have Ruby and [Rubygems](http://rubygems.org/) installed for this to work.  You can either do that through a package manager or by using [RVM](https://rvm.io/), which is probably easiest in the long run and will help you avoid problems with different Ruby versions.
 
 For the Ruby XML parser `nokogiri` to run [there are further requirments](http://nokogiri.org/tutorials/installing_nokogiri.html). On a Debian/Ubuntu system you will need to run this (but don't run the Ruby installation commands they mention if you're set up with RVM):
 
@@ -23,11 +23,11 @@ You will also need [Git](http://git-scm.com/) to get this source code.
 
 While I'm at it, let me recommend two other useful tools: [curl](http://curl.haxx.se/) and [jsonlint](https://github.com/zaach/jsonlint).
 
-These commands are meant for Debian/Ubuntu, so you'll have to adapt them to your system if you run something different:
-
     $ sudo apt-get install curl
     $ sudo apt-get install npm
 	$ npm install jsonlint -g
+
+All of these installation commands are meant for Debian/Ubuntu; adapt them to your system if you run something different.
 
 ## Installation
 
@@ -49,7 +49,11 @@ Good! This means that the web service is running on your machine on port 9292.  
 
     $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
 
-It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.  
+It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.
+
+If you installed `jsonlint` then this will make the output more readable:
+
+    $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013" | jsonlint
 
 ## Configuration
 
@@ -99,7 +103,7 @@ Another option is to use the hosted service [Heroku](http://www.heroku.com/).  F
 	$ heroku create
 	$ git push heroku master
 
-Heroku will tell you it's set up the service for you at `some-outlandish-hostname-2112.herokuapp.com` or something like that.  Now you can query it just like you queried your local instance before (change the hostname as necessary):
+Heroku will tell you it's set up the service for you at `some-outlandish-hostname-2112.herokuapp.com`.  Now you can query it just like you queried your local instance before (change the hostname as necessary):
 
     $ curl "http://some-outlandish-hostname-2112.herokuapp.com/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
 
@@ -117,7 +121,11 @@ That will create a layer.  There are many more options you can configure, but yo
 
 Install the Layar app on your smartphone or tablet if you haven't already.  Go into the settings and log in.  Now, in Geo Layers mode, if you page all the way to the right through the listings of layers you'll see a page called Test that lists all of your layers.  Launch the one you created and it should work!  Depending on how you configured it, if there are any tweets or POIs nearby, you'll see them.
 
-## Using it
+## Filter 1: tweets and/or map points
+
+## Filter 2: time limits on tweets
+
+# Using it
 
 Tell people to:
 
