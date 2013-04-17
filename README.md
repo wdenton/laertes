@@ -163,7 +163,7 @@ Tweets must be geolocated to appear.  To do this in the official Twitter client 
 
 # Contact information
 
-I'm interested in hearing anything about this: William Denton <[wtd@pobox.com](mailto:wtd@pobox.com)> (and [@wdenton](https://twitter.com/wdenton)).
+I'm interested in hearing anything about this: William Denton <[wtd@pobox.com](mailto:wtd@pobox.com)> at [www.miskatonic.org](http://www.miskatonic.org/) and [@wdenton](https://twitter.com/wdenton).
 
 Bug reports, pull requests, suggestions, comments and feedback are all welcome.
 
