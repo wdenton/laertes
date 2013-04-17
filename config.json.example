@@ -7,13 +7,13 @@
       "https://maps.google.com/maps/ms?msid=213549257652679418473.0004ce6c25e6cdeb0319d&msa=0",
       "https://maps.google.com/maps/ms?msid=208580427660303662074.0004d00a3e083f4d160a4&msa=0"
     ],
-    "icon_url": "http://code4lib.org/files/logo.png" 
+    "icon_url": "http://code4lib.org/files/logo.png"
   },
   {
-    "layer": "matchesthenameatlayar",
+    "layer": "example",
     "showMessage": "Message to show when layer is opened.",
     "search": "#this OR #that",
     "google_maps": [
-    ],
-  },
+    ]
+  }
 ]

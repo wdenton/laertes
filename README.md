@@ -47,15 +47,24 @@ You should now see a message like this:
     [2013-01-22 10:49:56] INFO  ruby 1.9.3 (2012-04-20) [x86_64-linux]
     [2013-01-22 10:49:56] INFO  WEBrick::HTTPServer#start: pid=14347 port=9292
 
-Good! This means that the web service is running on your machine on port 9292.  You can now test it by either hitting it on the command line or in your browser at a URL like this:
+Good! This means that the web service is running on your machine on port 9292.  You can now test it by either hitting it on the command line or in your browser with a URL like this:
 
-    $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
+    $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=example"
 
 It should respond with JSON output (as defined in Layar's [GetPOIs Response](https://www.layar.com/documentation/browser/api/getpois-response/)). As long as there is some JSON, even if it's not much, that's good.  If there's an error, look at your console to see what it might be.
 
 If you installed `jsonlint` then this will make the output more readable:
 
-    $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013" | jsonlint
+    $ curl "http://localhost:9292/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=example" | jsonlint
+    {
+      "layer": "example",
+      "showMessage": "Message to show when layer is opened.",
+      "refreshDistance": 300,
+      "refreshInterval": 100,
+      "hotspots": [],
+      "errorCode": 21,
+      "errorString": "No results found.  Try adjusting your search range and any filters."
+    }
 
 ## Configuration
 
@@ -73,7 +82,7 @@ All configuration is done in the `config.json` file.  You can use the one that's
         "icon_url": "http://code4lib.org/files/logo.png" 
       },
       {
-        "layer": "matchesthenameatlayar",
+        "layer": "example",
         "showMessage": "Message to show when layer is opened.",
         "search": "#this OR #that",
         "google_maps": [
@@ -89,7 +98,7 @@ This is an array of objects.  Each object has these elements:
 * `google_maps` (optional): URLs of Google Maps listings points of interest. If there's more than one, separate with a comma.
 * `icon_url` (optional): URL of an image that Layer will use when showing locations of points taken from the maps.  To one in this source tree, put it in the `public/icons/` directory and then give its full URL.  It must be 110x110 pixels.  See [Look and Feel Tab Explanation](http://www.layar.com/documentation/browser/publishing-site/look-and-feel-tab-explanation/) for more.
 
-If you ever edit the config file, it's a good idea to use `jsonlint` to make sure it's valid:
+If you edit the config file you can use `jsonlint` to make sure it's valid:
 
     $ jsonlint config.json
 
@@ -107,7 +116,7 @@ Another option is to use the hosted service [Heroku](http://www.heroku.com/).  F
 
 Heroku will tell you it's set up the service for you at `some-outlandish-hostname-2112.herokuapp.com`.  Now you can query it just like you queried your local instance before (change the hostname as necessary):
 
-    $ curl "http://some-outlandish-hostname-2112.herokuapp.com/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=code4lib2013"
+    $ curl "http://some-outlandish-hostname-2112.herokuapp.com/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=example"
 
 ## Setting up a layer in Layar
 
