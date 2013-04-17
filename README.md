@@ -123,9 +123,11 @@ Install the Layar app on your smartphone or tablet if you haven't already.  Go i
 
 ### Filter 1: tweets and/or map points
 
-![Screenshot of tweet/map point filter](images/laertes-readme-checkbox.png "Tweets and/or map points")
+![Screenshot of tweet/map point filter](images/laertes-readme-checkbox.png "Filter to show tweets and/or map points")
 
 ### Filter 2: time limits on tweets
+
+![Screenshot of tweet time filter](images/laertes-readme-radio-button.png "Filter to limit tweets by time")
 
 # Using it
 
