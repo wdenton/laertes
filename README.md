@@ -1,11 +1,16 @@
 Laertes
 =======
 
-Points of interest provider for the smartphone augmented reality application Layar. 
+Points of interest provider for the smartphone augmented reality application Layar.
 
-Laertes is a point of interest provider for the smartphone augmented reality application [Layar](http://www.layar.com/). It gathers together geolocated tweets using a defined hash tag with points of interest from Google Maps to give an AR view of goings on and happenings for everyone at an event or conference. 
+Laertes is a point of interest provider for the smartphone augmented reality application [Layar](http://www.layar.com/). It gathers together geolocated tweets using a defined hash tag with points of interest from Google Maps to give an AR view of goings on and happenings for everyone at an event or conference.
 
 With Laertes and Layar when you're at en event you can hold up your smartphone and pan around and see where all of the interesting places are and where everyone's been tweeting from in the last little while.
+
+These two blog posts explain more, and have screenshots:
+
+* [Code4Lib 2013 in Layar with Laertes](http://www.miskatonic.org/2013/03/08/code4lib-2013-layar-laertes) (February 2013)
+* [Laertes update](http://www.miskatonic.org/2013/04/22/laertes-update) (April 2013)
 
 ## Requirements
 
@@ -79,7 +84,7 @@ All configuration is done in the `config.json` file.  You can use the one that's
           "https://maps.google.com/maps/ms?msid=213549257652679418473.0004ce6c25e6cdeb0319d&msa=0",
           "https://maps.google.com/maps/ms?msid=208580427660303662074.0004d00a3e083f4d160a4&msa=0"
         ],
-        "icon_url": "http://code4lib.org/files/logo.png" 
+        "icon_url": "http://code4lib.org/files/logo.png"
       },
       {
         "layer": "example",
@@ -167,6 +172,3 @@ Tweets must be geolocated to appear.  To do this in the official Twitter client 
 I'm interested in hearing anything about this: William Denton <[wtd@pobox.com](mailto:wtd@pobox.com)> at [www.miskatonic.org](http://www.miskatonic.org/) and [@wdenton](https://twitter.com/wdenton).
 
 Bug reports, pull requests, suggestions, comments and feedback are all welcome.
-
-
-
