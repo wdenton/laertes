@@ -87,7 +87,7 @@ get "/" do
   show_tweets = true
   show_map_points = true
   tweet_time_limit = nil
-  
+
   if layer
 
     radius = 1500 # Default to 1500m radius if none provided
@@ -150,10 +150,10 @@ get "/" do
     if tweet_time_limit
       logger.info "Tweet time limit set to '#{tweet_time_limit}' with parameter #{params[:RADIOLIST].to_i}"
     end
-    
-# http://stackoverflow.com/questions/279769/convert-to-from-datetime-and-time-in-ruby
-# http://stackoverflow.com/questions/238684/subtract-n-hours-from-a-datetime-in-ruby
-    
+
+    # http://stackoverflow.com/questions/279769/convert-to-from-datetime-and-time-in-ruby
+    # http://stackoverflow.com/questions/238684/subtract-n-hours-from-a-datetime-in-ruby
+
     counter = 1;
 
     #
@@ -251,7 +251,7 @@ get "/" do
       @twitter["results"].each do |r|
         # puts r["from_user"]
         if tweet_time_limit and Time.parse(r["created_at"]) < tweet_time_limit
-          logger.debug "Skipping tweet #{r["id"]}: #{Time.parse(r["created_at"])} < #{tweet_time_limit}" 
+          logger.debug "Skipping tweet #{r["id"]}: #{Time.parse(r["created_at"])} < #{tweet_time_limit}"
           next
         end
         if r["geo"]
@@ -339,7 +339,7 @@ get "/" do
     }
 
     logger.info "Hotspots returned: #{hotspots.length}"
-    
+
     if hotspots.length == 0
       errorcode = 21
       errorstring = "No results found.  Try adjusting your search range and any filters."

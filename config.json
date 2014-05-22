@@ -26,5 +26,14 @@
       "https://maps.google.com/maps/ms?msid=202260848628777232836.0004d3d6b479a352821b4&msa=0"
     ],
     "icon_url": "http://laertes.herokuapp.com/icons/hastac2013-icon.png"
+  },
+  {
+    "layer": "awe2014",
+    "showMessage": "Use #awe2014 hashtag and turn on geolocating for your tweets to show here.  Layer options let you filter.",
+    "search": "#awe2014 OR augmented world expo",
+    "google_maps": [
+      "http://mapsengine.google.com/map/kml?mid=zvo4rr9pWN5s.k7YcXa6rmVxQ"
+    ],
+    "icon_url": "http://laertes.herokuapp.com/icons/awe2014.png"
   }
 ]
