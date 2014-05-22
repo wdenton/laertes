@@ -32,7 +32,7 @@
     "showMessage": "Use #awe2014 hashtag and turn on geolocating for your tweets to show here.  Layer options let you filter.",
     "search": "#awe2014 OR augmented world expo",
     "google_maps": [
-      "http://mapsengine.google.com/map/kml?mid=zvo4rr9pWN5s.k7YcXa6rmVxQ"
+      "https://mapsengine.google.com/map/kml?mid=zvo4rr9pWN5s.k7YcXa6rmVxQ"
     ],
     "icon_url": "http://laertes.herokuapp.com/icons/awe2014.png"
   }
