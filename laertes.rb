@@ -241,7 +241,12 @@ get "/" do
 
       begin
         # client.search("#{layer[:search]}", :result_type => "recent").take(100).each do |tweet|
-        client.search("#{CGI.escape(layer[:search])} geocode:#{params[:lat]},#{params[:lon]},#{radius_km}km", :result_type => "recent").take(100).each do |tweet|
+        twitter_query = "#{CGI.escape(layer['search'])} geocode:#{params[:lat]},#{params[:lon]},#{radius_km}km"
+        logger.debug "Searching for '#{twitter_query}'"
+        client.search(twitter_query, :result_type => "recent").take(100).each do |tweet|
+
+          logger.debug "Looking at tweet #{tweet.id}: #{tweet.text}"
+
 
           if tweet_time_limit and tweet.created_at < tweet_time_limit
             logger.debug "Skipping tweet #{tweet.id}: #{Time.parse(tweet.created_at)} < #{tweet_time_limit}"
@@ -249,7 +254,7 @@ get "/" do
           end
 
           if tweet.geo
-            logger.debug "Using tweet #{tweet.id}: #{tweet.created_at}"
+            logger.debug "Using tweet #{tweet.id}: #{tweet.text} (#{tweet.created_at})"
 
             hotspot = {
               "id" => tweet.id,
@@ -268,7 +273,7 @@ get "/" do
             }
 
             # imageURL is the image in the BIW, the banner at the bottom
-            hotspot["imageURL"] = tweet.user.profile_image_uri("bigger")
+            hotspot["imageURL"] = tweet.user.profile_image_uri_https("bigger")
 
             # Set up an action so the person can go to Twitter and see the
             # actual tweet.  Unfortunately Layar opens web pages
@@ -297,7 +302,7 @@ get "/" do
                 end
               end
             else
-              icon_url = tweet.user.profile_image_url
+              icon_url = tweet.user.profile_image_uri_https
             end
             hotspot["icon"] = {
               "url" => icon_url,
