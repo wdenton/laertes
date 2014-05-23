@@ -29,6 +29,7 @@ require 'cgi'
 
 require 'rubygems'
 require 'bundler/setup'
+require 'twitter'
 
 require 'sinatra'
 require 'nokogiri'
@@ -46,6 +47,7 @@ configure do
     puts e
     exit
   end
+
 end
 
 # UIC Fourm: 41.866862,-87.64597
@@ -223,105 +225,94 @@ get "/" do
     if show_tweets
       radius_km = radius / 1000 # Twitter wants the radius in km
 
-      # Test search: geolocated only (grabs a lot of results, good for making sure things work)
-      # twitter_search_url = "https://search.twitter.com/search.json?geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km&rpp=100"
-
-      # The real search: hashtag plus geolocated
-      twitter_search_url =
-        "https://search.twitter.com/search.json?q=" +
-        CGI.escape(layer["search"]) +
-        "&geocode=#{params[:lat]},#{params[:lon]},#{radius_km}km" +
-        "&rpp=100&include_entities=1"
-      logger.info "Twitter search URL: #{twitter_search_url}"
-
-      open(twitter_search_url) do |f|
-        unless f.status[0] == "200"
-          logger.error f.status
-          # Set up error for Layar
-        else
-          @twitter = JSON.parse(f.read)
-        end
+      begin
+        twitter_config = JSON.parse(File.read("twitter.json"))
+      rescue Exception => e
+        STDERR.puts "No readable twitter.json settings file: #{e}"
+        exit
       end
 
-      # TODO: Wrap this in a loop so we page back through results until we get
-      # n results?  Or will this be a problem when there's a large cluster of
-      # geolocated tweets happening with the same hash tag?
+      client = Twitter::REST::Client.new do |config|
+        config.consumer_key        = twitter_config["consumer_key"]
+        config.consumer_secret     = twitter_config["consumer_secret"]
+        config.access_token        = twitter_config["access_token"]
+        config.access_token_secret = twitter_config["access_token_secret"]
+      end
 
-      logger.info "Search returned #{@twitter['results'].size} results"
-      @twitter["results"].each do |r|
-        # puts r["from_user"]
-        if tweet_time_limit and Time.parse(r["created_at"]) < tweet_time_limit
-          logger.debug "Skipping tweet #{r["id"]}: #{Time.parse(r["created_at"])} < #{tweet_time_limit}"
-          next
-        end
-        if r["geo"]
-          # There is a known latitude and longitude. (Otherwise it's null.)
-          # By the way, there is only one kind of point, so this will always be true:
-          # r["geo"]["type"] == "Point"
+      begin
+        # client.search("#{layer[:search]}", :result_type => "recent").take(100).each do |tweet|
+        client.search("#{CGI.escape(layer[:search])} geocode:#{params[:lat]},#{params[:lon]},#{radius_km}km", :result_type => "recent").take(100).each do |tweet|
 
-          # Same as before: ignore if the point is not within the radius
-          latitude, longitude = r["geo"]["coordinates"]
-          # No: rely on Twitter to do it, because we're specifying it in the query.
-          # next if distance_between(params[:lat], params[:lon], latitude, longitude) > radius
+          if tweet_time_limit and tweet.created_at < tweet_time_limit
+            logger.debug "Skipping tweet #{tweet.id}: #{Time.parse(tweet.created_at)} < #{tweet_time_limit}"
+            next
+          end
 
-          logger.debug "Using tweet #{r["id"]}: #{r["created_at"]}"
+          if tweet.geo
+            logger.debug "Using tweet #{tweet.id}: #{tweet.created_at}"
 
-          hotspot = {
-            "id" => r["id"],
-            "text" => {
-              "title"       => "@#{r["from_user"]} (#{r["from_user_name"]})",
-              "description" => r["text"],
-              "footnote"    => since(r["created_at"])
-            },
-            # TODO Show local time, or how long ago.
-            "anchor" => {
-              "geolocation" => {
-                "lat" => latitude,
-                "lon" => longitude
+            hotspot = {
+              "id" => tweet.id,
+              "text" => {
+                "title"       => "@#{tweet.user.screen_name} (#{tweet.user.name})",
+                "description" => tweet.text,
+                "footnote"    => since(tweet.created_at)
+              },
+              # TODO Show local time, or how long ago.
+              "anchor" => {
+                "geolocation" => {
+                  "lat" => tweet.geo.latitude,
+                  "lon" => tweet.geo.longitude
+                }
               }
             }
-          }
 
-          # imageURL is the image in the BIW, the banner at the bottom
-          hotspot["imageURL"] = r["profile_image_url"].gsub("normal", "bigger") # https://dev.twitter.com/docs/user-profile-images-and-banners
+            # imageURL is the image in the BIW, the banner at the bottom
+            hotspot["imageURL"] = tweet.user.profile_image_uri("bigger")
 
-          # Set up an action so the person can go to Twitter and see the
-          # actual tweet.  Unfortunately Layar opens web pages
-          # internally and doesn't pass them over to a preferred
-          # application.
-          # See http://layar.com/documentation/browser/api/getpois-response/actions/
-          hotspot["actions"] = [{
-              "uri"          => "https://twitter.com/" + r["from_user"] + "/status/" + r["id_str"],
-              "label"        => "Read on Twitter",
-              "contentType"  => "text/html",
-              "activityType" => 27, # Show eye icon
-              "method"       => "GET"
-            }]
+            # Set up an action so the person can go to Twitter and see the
+            # actual tweet.  Unfortunately Layar opens web pages
+            # internally and doesn't pass them over to a preferred
+            # application.
+            # See http://layar.com/documentation/browser/api/getpois-response/actions/
+            hotspot["actions"] = [{
+                "uri"          =>  tweet.uri,
+                "label"        => "Read on Twitter",
+                "contentType"  => "text/html",
+                "activityType" => 27, # Show eye icon
+                "method"       => "GET"
+              }]
 
-          # icon is the image in the CIW, floating in space
-          # By saying "include_entities=1" in the search URL we retrieve more information ...
-          # if someone attached a photo to a tweet, show it instead of their profile image
-          # Documentation: https://dev.twitter.com/docs/tweet-entities
-          if r["entities"] && r["entities"]["media"]
-            # There is media attached.  Look for an attached photo.
-            r["entities"]["media"].each do |m|
-              # Will there ever be more than one?
-              if m["type"] && m["type"] == "photo"
-                icon_url = m["media_url"] + ":thumb"
-                logger.info "#{r['id']} has photo attached, icon_url = #{icon_url}"
+            # icon is the image in the CIW, floating in space
+            # By saying "include_entities=1" in the search URL we retrieve more information ...
+            # if someone attached a photo to a tweet, show it instead of their profile image
+            # Documentation: https://dev.twitter.com/docs/tweet-entities
+            if tweet.media?
+              # There is media attached.  Look for an attached photo.
+              tweet.media.each do |m|
+                # Will there ever be more than one?
+                if m.type && m.type == "photo"
+                  icon_url = m.media_url + ":thumb"
+                  logger.info "#{tweet.id} has photo attached, icon_url = #{icon_url}"
+                end
               end
+            else
+              icon_url = tweet.user.profile_image_url
             end
-          else
-            icon_url = r["profile_image_url"]
-          end
-          hotspot["icon"] = {
-            "url" => icon_url,
-            "type" =>  0
-          }
+            hotspot["icon"] = {
+              "url" => icon_url,
+              "type" =>  0
+            }
 
-          hotspots << hotspot
+            hotspots << hotspot
+          end
         end
+
+      rescue Exception => error
+        # TODO Catch errors better
+        logger.error "Error: #{error}"
       end
+
     end
 
     #
@@ -430,7 +421,7 @@ end
 def since(t)
   # Give a time, presumably pretty recent, express how long it was
   # in a nice readable way.
-  mm, ss = (Time.now - Time.parse(t)).divmod(60)
+  mm, ss = (Time.now - t).divmod(60)
   hh, mm = mm.divmod(60)
   dd, hh = hh.divmod(24)
   if dd > 1
