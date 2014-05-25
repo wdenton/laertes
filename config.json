@@ -29,7 +29,7 @@
   },
   {
     "layer": "awe2014",
-    "showMessage": "Use #awe2014 hashtag and turn on geolocating for your tweets to show here.  Layer options let you filter.",
+    "showMessage": "Use the #awe2014 hashtag and turn on geolocating for your tweets to show here.  Layer options let you filter.",
     "search": "#awe2014",
     "google_maps": [
       "https://mapsengine.google.com/map/kml?mid=zvo4rr9pWN5s.k7YcXa6rmVxQ"

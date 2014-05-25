@@ -293,14 +293,12 @@ get "/" do
             # if someone attached a photo to a tweet, show it instead of their profile image
             # Documentation: https://dev.twitter.com/docs/tweet-entities
             if tweet.media?
-              # There is media attached.  Look for an attached photo.
-              tweet.media.each do |m|
-                # Will there ever be more than one?
-                if m.type && m.type == "photo"
-                  icon_url = m.media_url + ":thumb"
-                  logger.info "#{tweet.id} has photo attached, icon_url = #{icon_url}"
-                end
-              end
+              # There is media attached.  Look for an attached photo.  Assume only one form of media is attached.
+              media = tweet.media.first
+              # Assume it's a photo ... if there are more types of media, will need to fix this.
+              # Unsure how to get the type of the media out, but right now it's always type = photo
+              icon_url = "#{media.media_uri_https}:thumb"
+              logger.info "#{tweet.id} has photo attached, icon_url = #{icon_url}"
             else
               icon_url = tweet.user.profile_image_uri_https
             end
