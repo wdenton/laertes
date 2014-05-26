@@ -48,9 +48,9 @@ To install Laertes you need to get this source code by either forking this GitHu
 
 You should now see a message like this:
 
-    [2013-01-22 10:49:56] INFO  WEBrick 1.3.1
-    [2013-01-22 10:49:56] INFO  ruby 1.9.3 (2012-04-20) [x86_64-linux]
-    [2013-01-22 10:49:56] INFO  WEBrick::HTTPServer#start: pid=14347 port=9292
+    [2014-05-26 12:24:52] INFO  WEBrick 1.3.1
+    [2014-05-26 12:24:52] INFO  ruby 2.0.0 (2014-05-08) [x86_64-linux]
+    [2014-05-26 12:24:52] INFO  WEBrick::HTTPServer#start: pid=874 port=9292
 
 Good! This means that the web service is running on your machine on port 9292.  You can now test it by either hitting it on the command line or in your browser with a URL like this:
 
@@ -72,6 +72,8 @@ If you installed `jsonlint` then this will make the output more readable:
     }
 
 ## Configuration
+
+### Layar
 
 Layar configuration is done in the `config.json` file.  You can use the one that's there or edit it as you like.  It's in [JSON](http://www.json.org/) and looks like this:
 
@@ -107,15 +109,23 @@ If you edit the config file you can use `jsonlint` to make sure it's valid:
 
     $ jsonlint config.json
 
+### Twitter
+
 Twitter configuration is done through environment variables.
 
-TODO: Explain Twitter config.
+To make Laertes work, first you will need to set it up as a new app. Go to https://apps.twitter.com/new and follow the steps there to create a new app.  Call it Laertes, and fill in the other fields with some basic information.  Then go to the API Keys tab.  The API key and API secret will be there, but you also need the access token.  Use the "Create my access token button" to create them.  It will take a few moments.  Wait a little bit, reload, and then they should be there.
 
-https://devcenter.heroku.com/articles/config-vars
+These four keys and secrets are needed by Laertes to authenticate to Twitter with the [Twitter gem](https://github.com/sferik/twitter).  Set them as environment variables with these names.  In bash you would put this in your `.bashrc`:
 
-> heroku config:set LAERTES_CONSUMER_SECRET=abc12
-> Setting config vars and restarting laertes... done, v36
-> LAERTES_CONSUMER_SECRET: abc123
+    # Laertes environment variables
+    export LAERTES_CONSUMER_KEY="xxxxx"
+    export LAERTES_CONSUMER_SECRET="yyyyy"
+    export LAERTES_ACCESS_TOKEN="12345678-zzzzz"
+    export LAERTES_ACCESS_TOKEN_SECRET="zzzzz"
+
+Don't forget to `source .bashrc` or paste those lines into your shell so your current environment knows those variables.
+
+With that done, you can run Laertes locally and it will be able to log into Twitter.
 
 ## Deploying in production
 
@@ -132,6 +142,15 @@ Another option is to use the hosted service [Heroku](http://www.heroku.com/).  F
 Heroku will tell you it's set up the service for you at `some-outlandish-hostname-2112.herokuapp.com`.  Now you can query it just like you queried your local instance before (change the hostname as necessary):
 
     $ curl "http://some-outlandish-hostname-2112.herokuapp.com/?lon=-87.64597&lat=41.866862&version=6.2&radius=2000&layerName=example"
+
+The Twitter search won't work, because the environment variables are not set.  Use the instructions on [Configuration and Config Vars](https://devcenter.heroku.com/articles/config-vars) to do this.
+
+    $ heroku config:set LAERTES_CONSUMER_KEY=xxxxx
+    $ heroku config:set LAERTES_CONSUMER_SECRET=yyyyy
+    $ heroku config:set LAERTES_ACCESS_TOKEN=12345678-zzzzz
+    $ heroku config:set LAERTES_ACCESS_TOKEN_SECRET=zzzzz
+
+Heroku remembers these variables through upgrades.  When they're set, do the `curl` query again and it should work.
 
 ## Setting up a layer in Layar
 

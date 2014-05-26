@@ -21,6 +21,8 @@
 #
 # Configuration details are set in the file config.json.
 # Make a copy of config.json.example and edit it.
+#
+# Twitter configuration is done in environment variables.
 
 require 'json'
 require 'time'
