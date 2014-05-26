@@ -246,19 +246,18 @@ get "/" do
       begin
         # client.search("#{layer[:search]}", :result_type => "recent").take(100).each do |tweet|
         twitter_query = "#{CGI.escape(layer['search'])} geocode:#{params[:lat]},#{params[:lon]},#{radius_km}km"
-        logger.debug "Searching for '#{twitter_query}'"
+        logger.debug "Searching Twitter for '#{twitter_query}'"
         client.search(twitter_query, :result_type => "recent").take(100).each do |tweet|
 
-          logger.debug "Looking at tweet #{tweet.id}: #{tweet.text}"
-
+          logger.debug "Found tweet #{tweet.id}: '#{tweet.text}'"
 
           if tweet_time_limit and tweet.created_at < tweet_time_limit
             logger.debug "Skipping tweet #{tweet.id}: #{Time.parse(tweet.created_at)} < #{tweet_time_limit}"
             next
           end
 
-          if tweet.geo
-            logger.debug "Using tweet #{tweet.id}: #{tweet.text} (#{tweet.created_at})"
+          if ! tweet.geo.nil?
+            logger.debug "Geolocation defined; using it"
 
             hotspot = {
               "id" => tweet.id,

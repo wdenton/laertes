@@ -111,6 +111,8 @@ Twitter configuration is done through environment variables.
 
 TODO: Explain Twitter config.
 
+https://devcenter.heroku.com/articles/config-vars
+
 > heroku config:set LAERTES_CONSUMER_SECRET=abc12
 > Setting config vars and restarting laertes... done, v36
 > LAERTES_CONSUMER_SECRET: abc123
