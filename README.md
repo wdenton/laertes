@@ -73,7 +73,7 @@ If you installed `jsonlint` then this will make the output more readable:
 
 ## Configuration
 
-All configuration is done in the `config.json` file.  You can use the one that's there or edit it as you like.  It's in [JSON](http://www.json.org/) and looks like this:
+Layar configuration is done in the `config.json` file.  You can use the one that's there or edit it as you like.  It's in [JSON](http://www.json.org/) and looks like this:
 
     [
       {
@@ -106,6 +106,14 @@ This is an array of objects.  Each object has these elements:
 If you edit the config file you can use `jsonlint` to make sure it's valid:
 
     $ jsonlint config.json
+
+Twitter configuration is done through environment variables.
+
+TODO: Explain Twitter config.
+
+> heroku config:set LAERTES_CONSUMER_SECRET=abc12
+> Setting config vars and restarting laertes... done, v36
+> LAERTES_CONSUMER_SECRET: abc123
 
 ## Deploying in production
 

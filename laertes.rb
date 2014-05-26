@@ -225,18 +225,22 @@ get "/" do
     if show_tweets
       radius_km = radius / 1000 # Twitter wants the radius in km
 
-      begin
-        twitter_config = JSON.parse(File.read("twitter.json"))
-      rescue Exception => e
-        STDERR.puts "No readable twitter.json settings file: #{e}"
-        exit
+      # begin
+      #   twitter_config = JSON.parse(File.read("twitter.json"))
+      # rescue Exception => e
+      #   STDERR.puts "No readable twitter.json settings file: #{e}"
+      #   exit
+      # end
+
+      if ENV['LAERTES_CONSUMER_KEY'].nil? || ENV['LAERTES_CONSUMER_SECRET'].nil? || ENV['LAERTES_ACCESS_TOKEN'].nil? || ENV['LAERTES_ACCESS_TOKEN_SECRET'].nil?
+        logger.debug "Twitter environment variables are not set; Twitter search will not work. See documentation for how to set this up"
       end
 
       client = Twitter::REST::Client.new do |config|
-        config.consumer_key        = twitter_config["consumer_key"]
-        config.consumer_secret     = twitter_config["consumer_secret"]
-        config.access_token        = twitter_config["access_token"]
-        config.access_token_secret = twitter_config["access_token_secret"]
+        config.consumer_key        = ENV['LAERTES_CONSUMER_KEY']
+        config.consumer_secret     = ENV['LAERTES_CONSUMER_SECRET']
+        config.access_token        = ENV['LAERTES_ACCESS_TOKEN']
+        config.access_token_secret = ENV['LAERTES_ACCESS_TOKEN_SECRET']
       end
 
       begin
